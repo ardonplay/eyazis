@@ -5,6 +5,6 @@ services:
     build:
       context: .
     volumes:
-      ./content:/app/content
+      - ./content:/app/content
     ports:
       - 8000:8000
