@@ -59,16 +59,13 @@ metadata = {
     "VB": "глагол, исходная форма",
 }
 
-# Получаем текущий путь
 current_path = os.getcwd()
 
 print(current_path)
 
-# Разбиваем текущий путь на компоненты
 current_path_components = current_path.split(os.path.sep)
 print(current_path_components)
 
-# Формируем путь к папке ../content
 corpus_path = os.path.join(os.path.sep.join(current_path_components), "content")
 print(corpus_path)
 
@@ -78,13 +75,13 @@ corpus.close()
 
 
 class Value:
-    morpherm: str
-    aboa_type: str
+    morpheme: str
+    type: str
     count: int
 
-    def __init__(self, morpherm: str, nltk_type: str, count: int):
-        self.morpherm = morpherm
-        self.aboa_type = nltk_type
+    def __init__(self, morpheme: str, nltk_type: str, count: int):
+        self.morpheme = morpheme
+        self.type = nltk_type
         self.count = count
 
 
@@ -97,6 +94,6 @@ def tokenize(text: str) -> dict:
         if corpus_dict.get(word):
             content = corpus_dict[word]
             if content[1]:
-                result[word] = Value(morpherm=content[0], nltk_type=metadata.get(content[1]), count=content[2])
+                result[word] = Value(morpheme=content[0], nltk_type=metadata.get(content[1]), count=content[2])
 
     return result

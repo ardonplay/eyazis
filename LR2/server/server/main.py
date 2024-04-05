@@ -1,16 +1,9 @@
-from typing import Annotated
-
+import os
 import uvicorn
-from fastapi import FastAPI, Form
-from server.utils import basis
-
-app = FastAPI(swagger_ui_parameters={"syntaxHighlight": False})
-
-
-@app.get("/api/v1/lr2")
-async def root(text: Annotated[str, Form()]):
-    return basis.tokenize(text)
 
 
 def start():
-    uvicorn.run("server.main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.getenv("SERVER_PORT", 8000))
+    host = os.getenv("SERVER_HOST", "0.0.0.0")
+
+    uvicorn.run("server.server:app", host=host, port=port, reload=True)
