@@ -13,4 +13,4 @@ async def root(text: Annotated[str, Form()]):
 
 
 def start():
-    uvicorn.run("my_package.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("server.main:app", host="0.0.0.0", port=8000, reload=True)
