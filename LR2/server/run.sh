@@ -20,6 +20,8 @@ echo "download complete"
 
 echo "shelling..."
 
+poetry env use python3.12
+
 poetry install
 
 echo "run server..."
