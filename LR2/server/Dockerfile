@@ -7,6 +7,6 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 COPY server ./server
 
-RUN poetry install --without dev
+RUN poetry install
 
 ENTRYPOINT ["poetry", "run", "server"]
