@@ -1,6 +1,7 @@
-import { clearResponseData, fetchForAnalyse, useAppDispatch } from "@/redux/store"
+import { clearResponseData, loadParsedText, downloadCurrent, fetchForAnalyse, useAppDispatch, useAppSelector } from "@/redux/store"
 import { useSignal } from "@preact/signals"
-import { TargetedEvent, useRef } from "preact/compat"
+import { useRef } from "preact/hooks"
+import HighlightWithinTextarea from "react-highlight-within-textarea"
 
 const InputView = (props: { isPasrsed: boolean, isHelpMode: boolean }) => {
     const dispatch = useAppDispatch()
@@ -8,16 +9,16 @@ const InputView = (props: { isPasrsed: boolean, isHelpMode: boolean }) => {
 
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-    const fetchForParse = (e: TargetedEvent<HTMLTextAreaElement>) => {
+    const fetchForParse = (e: any) => {
         const text = e.currentTarget.value
 
         if (text.length > 0)
-            dispatch(fetchForAnalyse(text))
+            dispatch(fetchForAnalyse({ text }))
         else
             dispatch(clearResponseData())
     }
 
-    const onFileDrag = (e: TargetedEvent<HTMLElement, DragEvent>) => {
+    const onFileDrag = (e: any) => {
         const dt = e.dataTransfer
 
         if (dt && dt.types && dt.types.indexOf('Files') != -1) {
@@ -39,7 +40,7 @@ const InputView = (props: { isPasrsed: boolean, isHelpMode: boolean }) => {
                 const uploadedText = reader.result as string
 
                 textareaRef.current.value = uploadedText
-                dispatch(fetchForAnalyse(uploadedText))
+                dispatch(fetchForAnalyse({ text: uploadedText }))
             }
             reader.readAsText(file)
         }
@@ -58,9 +59,40 @@ const InputView = (props: { isPasrsed: boolean, isHelpMode: boolean }) => {
         dragAndDropMode.value = false
     }
 
-    const onFileInput = (e: TargetedEvent<HTMLInputElement, Event>) => {
+    const onFileInput = (e: any) => {
         uploadTextFile((e.target as any).files[0])
     }
+
+    const saveParsedText = () => {
+        dispatch(downloadCurrent())
+    }
+
+
+    const loadParsedTextFile = async (e: any) => {
+        const file = (e.target as any).files[0] as File
+        const k = JSON.parse(await file.text())
+        console.log('k: ', k)
+        if (textareaRef.current)
+            textareaRef.current.value = k.text
+
+        dispatch(loadParsedText(k))
+    }
+
+    const text = useAppSelector(state => state.text)
+    const highlightedText = useAppSelector(state => state.highlightedText)
+    const isHighlightedText = highlightedText.length > 0
+
+    let highlighted = text
+    if (highlighted) {
+        for (const word of highlightedText) {
+            highlighted = highlighted.replace(word, `<span class='bg-red-300'>${word}</span>`)
+        }
+    }
+
+    const searchWord = useAppSelector(state => state.searchWord)
+
+
+    var re = new RegExp(`\\b${searchWord}\\b`  ?? 'kek', 'g');
 
     return (
         <div class={`group flex flex-col max-w-full w-full ${props.isHelpMode ? '!max-w-0' : ''} ${props.isPasrsed ? '!max-w-[500px]' : ''} overflow-hidden transition-all duration-200`}>
@@ -76,10 +108,19 @@ const InputView = (props: { isPasrsed: boolean, isHelpMode: boolean }) => {
                             <p class="text-xs text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
                         </div>
                     </label> : <>
-                        <textarea ref={textareaRef} onChange={fetchForParse} placeholder='Start writing here...' class='w-full h-full bg-transparent focus:outline-none resize-none pr-[30px]'>
-                        </textarea>
-                        <input id="file-selector" onInput={onFileInput} type="file" class="hidden" />
-                        <label for="file-selector" class='opacity-0 w-fit group-hover:opacity-20 text-primary cursor-pointer hover:!opacity-50 transition-opacity ease-in'>Import text from file</label>
+                        {!isHighlightedText ?
+                            <textarea value={text} ref={textareaRef} onChange={fetchForParse} placeholder='Start writing here...' class='w-full h-full bg-transparent focus:outline-none resize-none pr-[30px]'>
+                            </textarea> : <div dangerouslySetInnerHTML={{__html: highlightedText.map(t => `<p>${t}</p>`).join('<br/>').replace(re, `<span class='bg-yellow-400 text-black'>${searchWord}</span>`)}} class='w-full h-full bg-transparent focus:outline-none resize-none pr-[30px]'>
+                                {}
+                            </div>
+                        }
+                        <div class='flex gap-5'>
+                            <input id="file-selector" onInput={onFileInput} type="file" class="hidden" />
+                            <input id="file-selector-load" onInput={loadParsedTextFile} type="file" class="hidden" />
+                            <label for="file-selector" class='opacity-20 w-fit group-hover:opacity-20 text-primary cursor-pointer hover:!opacity-50 transition-opacity ease-in underline'>Import text from file</label>
+                            <button onClick={saveParsedText} class='opacity-20 w-fit group-hover:opacity-20 text-primary cursor-pointer hover:!opacity-50 transition-opacity ease-in underline'>Save</button>
+                            <label for="file-selector-load" class='opacity-20 w-fit group-hover:opacity-20 text-primary cursor-pointer hover:!opacity-50 transition-opacity ease-in underline'>Load</label>
+                        </div>
 
                     </>
                 }
