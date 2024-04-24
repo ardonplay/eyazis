@@ -1,7 +1,7 @@
 FROM python:3.12.2-alpine3.19
 
 RUN pip install poetry
-RUN apk update && apk add  build-base imagemagick-dev imagemagick && convert
+RUN apk update && apk add  build-base imagemagick-dev imagemagick
 WORKDIR /app
 
 COPY pyproject.toml poetry.lock ./
