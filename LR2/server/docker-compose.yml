@@ -1,7 +1,7 @@
 services:
-  lr2_server:
-    image: eyazis_lr2_server:latest
-    container_name: eyazis_lr2_server
+  eyazis_server:
+    image: eyazis_server:latest
+    container_name: eyazis_server
     build:
       context: .
     volumes:

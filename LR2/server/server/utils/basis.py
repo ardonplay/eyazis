@@ -2,6 +2,7 @@ import json
 import os
 import nltk
 from nltk import word_tokenize
+from nltk.tokenize import sent_tokenize
 import ssl
 
 try:
@@ -96,4 +97,31 @@ def tokenize(text: str) -> dict:
             if content[1]:
                 result[word] = Value(morpheme=content[0], nltk_type=metadata.get(content[1]), count=content[2])
 
+    return result
+
+signs = "!~@#$%^&*()_+<>?:.,’;[]\\|'\"\'–«‘1234567890'”`“"
+
+def process_text(raw_data):
+    sentences = sent_tokenize(raw_data)
+    for sindex in range(len(sentences)):
+        for sign in signs:
+            if sign in sentences[sindex]:
+                sentences[sindex] = sentences[sindex].replace(sign, ' ')
+    sentence_dict = {sentence: [] for sentence in sentences}
+    grammar = nltk.RegexpParser('''
+    NP: {<DT>?<JJ>*<NN.*>}
+    P: {<IN>}           
+    V: {<V.*>}          
+    PP: {<P> <NP>}      
+    VP: {<V> <NP|PP>*}  
+    ADJP: {<JJ>}        
+    S: {<NP> <VP>}      
+    ''')
+    for sentence in sentences:
+        tree = grammar.parse(nltk.pos_tag(
+            word_tokenize(sentence)))
+        sentence_dict[sentence].append(tree)
+    result = []
+    for sentence in sentence_dict.keys():
+        result.append((sentence, sentence_dict.get(sentence)))
     return result
