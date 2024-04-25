@@ -1,8 +1,7 @@
 import os
 from typing import Annotated, Optional
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, Response
 from fastapi.middleware.cors import CORSMiddleware
-from nltk import Tree
 from nltk.draw.util import CanvasFrame
 from nltk.draw import TreeWidget
 from starlette.responses import FileResponse
@@ -27,6 +26,11 @@ app.add_middleware(
 @app.post("/api/v1/lr2")
 async def root(text: Annotated[str, Form()]):
     return basis.tokenize(text)
+
+@app.get("/api/v1/lr4")
+async def root(response: Response, text):
+    response.headers["Content-Type"] = "application/json; charset=utf-8"
+    return basis.process_text_conceptnet(text)
 
 
 @app.get("/api/v1/lr3/tree")
